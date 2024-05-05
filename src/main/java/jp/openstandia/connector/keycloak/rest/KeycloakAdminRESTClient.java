@@ -63,7 +63,7 @@ public class KeycloakAdminRESTClient implements KeycloakClient.Client {
         return adminClient.realm(realmName);
     }
 
-    private ClientsResource clients(String realmName) {
+    public ClientsResource clients(String realmName) {
         return realm(realmName).clients();
     }
 

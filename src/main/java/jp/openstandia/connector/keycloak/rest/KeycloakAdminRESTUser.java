@@ -76,6 +76,10 @@ public class KeycloakAdminRESTUser implements KeycloakClient.User {
             throws AlreadyExistsException {
         UserRepresentation newUser = toUserRep(schema, createAttributes);
 
+        if(users(realmName).get(newUser.getUsername()) != null) {
+            throw new AlreadyExistsException("User with username : " + newUser.getUsername() + " already exists.");
+        }
+
         CredentialRepresentation credential = null;
         if (configuration.isPasswordResetAPIEnabled()) {
             List<CredentialRepresentation> credentials = newUser.getCredentials();

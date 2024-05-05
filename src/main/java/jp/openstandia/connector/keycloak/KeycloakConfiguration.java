@@ -325,7 +325,7 @@ public class KeycloakConfiguration extends AbstractConfiguration {
 
     @Override
     public void validate() {
-        if (StringUtil.isBlank(getUsername()) || getPassword() == null && getClientSecret() == null) {
+        if ((StringUtil.isBlank(getUsername()) && getPassword() == null) && (StringUtil.isBlank(getClientId()) && getClientSecret() == null)) {
             throw new ConfigurationException("Invalid client credential: need to setup username/password or client secret.");
         }
     }

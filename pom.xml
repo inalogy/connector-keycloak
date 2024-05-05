@@ -133,43 +133,43 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.2.0</version>
-                <configuration>
-                    <source>${project.source.version}</source>
-                    <javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>attach-javadocs</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-gpg-plugin</artifactId>
-                <version>1.6</version>
-                <configuration>
-                    <gpgArguments>
-                        <arg>--pinentry-mode</arg>
-                        <arg>loopback</arg>
-                    </gpgArguments>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>sign-artifacts</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>sign</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-javadoc-plugin</artifactId>-->
+<!--                <version>3.2.0</version>-->
+<!--                <configuration>-->
+<!--                    <source>${project.source.version}</source>-->
+<!--                    <javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>-->
+<!--                </configuration>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <id>attach-javadocs</id>-->
+<!--                        <goals>-->
+<!--                            <goal>jar</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-gpg-plugin</artifactId>-->
+<!--                <version>1.6</version>-->
+<!--                <configuration>-->
+<!--                    <gpgArguments>-->
+<!--                        <arg>&#45;&#45;pinentry-mode</arg>-->
+<!--                        <arg>loopback</arg>-->
+<!--                    </gpgArguments>-->
+<!--                </configuration>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <id>sign-artifacts</id>-->
+<!--                        <phase>verify</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>sign</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
         </plugins>
     </build>
 
@@ -180,7 +180,7 @@
         <dependency>
             <groupId>org.keycloak</groupId>
             <artifactId>keycloak-admin-client</artifactId>
-            <version>20.0.3</version>
+            <version>20.0.4</version>
 <!--            <exclusions>-->
 <!--                <exclusion>-->
 <!--                    <groupId>org.slf4j</groupId>-->
@@ -192,20 +192,17 @@
 
     <profiles>
         <profile>
-            <id>midpoint</id>
+            <id>midpoint48</id>
             <dependencies>
                 <dependency>
                     <groupId>com.evolveum.midpoint.gui</groupId>
                     <artifactId>admin-gui</artifactId>
-                    <version>4.4.3</version>
-                    <type>jar</type>
-                    <classifier>classes</classifier>
+                    <version>4.8.2</version>
                     <scope>provided</scope>
                 </dependency>
                 <dependency>
                     <groupId>org.testng</groupId>
                     <artifactId>testng</artifactId>
-                    <version>6.8</version>
                     <scope>test</scope>
                     <exclusions>
                         <exclusion>
@@ -213,6 +210,30 @@
                             <artifactId>snakeyaml</artifactId>
                         </exclusion>
                     </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>net.tirasa.connid</groupId>
+                    <artifactId>connector-framework</artifactId>
+                    <version>1.5.2.0</version>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>net.tirasa.connid</groupId>
+                    <artifactId>connector-framework-internal</artifactId>
+                    <version>1.5.2.0</version>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>net.tirasa.connid</groupId>
+                    <artifactId>connector-framework-contract</artifactId>
+                    <version>1.5.2.0</version>
+                    <scope>test</scope>
+                </dependency>
+                <dependency>
+                    <groupId>net.bytebuddy</groupId>
+                    <artifactId>byte-buddy</artifactId>
+                    <version>1.14.9</version>
+                    <scope>provided</scope>
                 </dependency>
             </dependencies>
         </profile>
