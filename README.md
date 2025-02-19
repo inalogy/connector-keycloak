@@ -20,7 +20,7 @@ This connector contains support for Keycloak user and group.
 Install JDK 11+ and [maven3](https://maven.apache.org/download.cgi) then build:
 
 ```
-mvn install
+mvn package -Pmidpoint48 
 ```
 
 After successful the build, you can find `connector-keycloak-*.jar` in `target` directory.
