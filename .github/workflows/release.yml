@@ -3,7 +3,7 @@ name: Release package to the Maven Central Repository
 on:
   push:
     branches:
-      - master
+      - partners
 
 jobs:
   build:
@@ -59,6 +59,3 @@ jobs:
             --use-conveyal-workflow
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          OSSRH_JIRA_USERNAME: ${{ secrets.OSSRH_JIRA_USERNAME }}
-          OSSRH_JIRA_PASSWORD: ${{ secrets.OSSRH_JIRA_PASSWORD }}
-          OSSRH_GPG_SECRET_KEY_PASSWORD: ${{ secrets.OSSRH_GPG_SECRET_KEY_PASSWORD }}
