@@ -1,61 +1,61 @@
-name: Release package to the Maven Central Repository
+# This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-maven
+
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: Create Release
 
 on:
   push:
-    branches:
-      - partners
+    tags:
+      - '*'
 
 jobs:
   build:
-    name: Build and release
+    name: Create Release
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, '[ci skip]')"
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up JDK
-        uses: actions/setup-java@v1
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
         with:
-          java-version: 11
-          server-id: ossrh
-          server-username: OSSRH_JIRA_USERNAME
-          server-password: OSSRH_JIRA_PASSWORD
-          gpg-private-key: ${{ secrets.OSSRH_GPG_SECRET_KEY }}
-          gpg-passphrase: OSSRH_GPG_SECRET_KEY_PASSWORD
-      - name: Cache for maven
-        uses: actions/cache@v2
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Create package keycloak
+        run: mvn clean install
+      - name: Rename package
+
+        run: mv ./target/connector-keycloak-*.jar ./target/inalogy-keycloak-${{ github.ref_name }}.jar
+
+      - name: Upload push-keycloak
+        uses: actions/upload-artifact@v4
         with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-      - name: Setup node
-        uses: actions/setup-node@v1
+          name: Inalogy
+          path: ./target/inalogy-keycloak-${{ github.ref_name }}.jar
+
+      - name: Create push-keycloak release
+        id: create_release_push-keycloak
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
-          node-version: '10.x'
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn cache dir)"
-      - name: Cache for yarn
-        uses: actions/cache@v2
-        with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-yarn-maven-semantic-release-v4.5.0
-          restore-keys: |
-            ${{ runner.os }}-yarn-
-      - name: Setup semantic-release
-        run: |
-          yarn global add @conveyal/maven-semantic-release@v4.5.0 semantic-release@15
-          echo "$(yarn global bin)" >> $GITHUB_PATH
-      - name: Test
-        run: mvn -B test
-      - name: Release
-        # maven-semantic-release requires "maven-settings.xml" in the workspace directory
-        run: |
-          mv ~/.m2/settings.xml maven-settings.xml
-          semantic-release --branch master --prepare @conveyal/maven-semantic-release \
-            --publish @semantic-release/github,@conveyal/maven-semantic-release \
-            --verify-conditions @semantic-release/github,@conveyal/maven-semantic-release \
-            --verify-release @conveyal/maven-semantic-release\
-            --use-conveyal-workflow
+          tag_name: keycloak-${{ github.ref_name }}
+          release_name: Release Push KEYCLOAK ${{ github.ref_name }}
+          body: CHANGELOG.md
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset
+        id: upload-release-asset-push-keycloak
+        uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release_push-keycloak.outputs.upload_url }} 
+          asset_path: ./target/inalogy-keycloak-${{ github.ref_name }}.jar
+          asset_name: inalogy-keycloak-${{ github.ref_name }}.jar
+          asset_content_type: application/java-archive
