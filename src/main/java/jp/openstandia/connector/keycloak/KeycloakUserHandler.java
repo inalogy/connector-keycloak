@@ -162,8 +162,9 @@ public class KeycloakUserHandler extends AbstractKeycloakHandler {
 
         builder.addAttributeInfo(
                 AttributeInfoBuilder.define(ATTR_FORCED_REQUIRED_ACTIONS)
-                        .setType(List.class)
+                        .setType(String.class)
                         .setRequired(false)
+                        .setMultiValued(true)
                         .setUpdateable(true)
                         .build()
         );
