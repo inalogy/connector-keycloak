@@ -21,6 +21,7 @@ import org.identityconnectors.framework.common.objects.*;
 import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static jp.openstandia.connector.keycloak.KeycloakUtils.createFullAttributesToGet;
@@ -49,6 +50,8 @@ public class KeycloakUserHandler extends AbstractKeycloakHandler {
     public static final String ATTR_EMAIL_VERIFIED = "emailVerified";
     public static final String ATTR_FIRST_NAME = "firstName";
     public static final String ATTR_LAST_NAME = "lastName";
+
+    public static final String ATTR_FORCED_REQUIRED_ACTIONS = "forcedRequiredActions";
 
     // Metadata
     public static final String ATTR_CREATED_TIMESTAMP = "createdTimestamp";
@@ -152,6 +155,14 @@ public class KeycloakUserHandler extends AbstractKeycloakHandler {
         // lastName
         builder.addAttributeInfo(
                 AttributeInfoBuilder.define(ATTR_LAST_NAME)
+                        .setRequired(false)
+                        .setUpdateable(true)
+                        .build()
+        );
+
+        builder.addAttributeInfo(
+                AttributeInfoBuilder.define(ATTR_FORCED_REQUIRED_ACTIONS)
+                        .setType(List.class)
                         .setRequired(false)
                         .setUpdateable(true)
                         .build()

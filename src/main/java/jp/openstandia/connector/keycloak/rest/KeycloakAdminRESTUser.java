@@ -101,6 +101,10 @@ public class KeycloakAdminRESTUser implements KeycloakClient.User {
 
         updatePassword(realmName, uuid, credential, true);
 
+        if(!newUser.getRequiredActions().isEmpty()){
+            callRequiredActions(realmName, uuid, newUser.getRequiredActions());
+        }
+
         // Adding groups when creating a user is supported from 9.0.2.
         // https://github.com/keycloak/keycloak/pull/6886
         // But it requires group path list. So we don't use this API.
@@ -117,6 +121,10 @@ public class KeycloakAdminRESTUser implements KeycloakClient.User {
         }
 
         return new Uid(uuid, new Name(newUser.getUsername()));
+    }
+
+    private void callRequiredActions(String realmName, String uuid, List<String> requiredActions) {
+        users(realmName).get(uuid).executeActionsEmail(requiredActions);
     }
 
     protected UserRepresentation toUserRep(KeycloakSchema schema, Set<Attribute> attributes) {
@@ -162,6 +170,11 @@ public class KeycloakAdminRESTUser implements KeycloakClient.User {
                 List<String> groups = attr.getValue().stream().map(a -> a.toString()).collect(Collectors.toList());
                 newUser.setGroups(groups);
 
+            } else if(attr.getName().equals(ATTR_FORCED_REQUIRED_ACTIONS)){
+                List<String> requiredActions = attr.getValue().stream()
+                        .map(object -> Objects.toString(object, null))
+                        .collect(Collectors.toList());
+              newUser.setRequiredActions(requiredActions);
             } else {
                 if (!schema.isUserSchema(attr)) {
                     throw new InvalidAttributeValueException(String.format("Keycloak doesn't support to set '%s' attribute of User",
@@ -251,6 +264,11 @@ public class KeycloakAdminRESTUser implements KeycloakClient.User {
                 } else if (delta.getName().equals(ATTR_LAST_NAME)) {
                     current.setLastName(toKeycloakValue(schema.userSchema, delta));
 
+                }else if(delta.getName().equals(ATTR_FORCED_REQUIRED_ACTIONS)){
+                    List<String> requiredActions = delta.getValuesToReplace().stream()
+                            .map(object -> Objects.toString(object, null))
+                            .collect(Collectors.toList());
+                    current.setRequiredActions(requiredActions);
                 } else if (delta.getName().equals(ATTR_GROUPS)) {
                     if (delta.getValuesToAdd() != null) {
                         for (Object group : delta.getValuesToAdd()) {
@@ -345,6 +363,10 @@ public class KeycloakAdminRESTUser implements KeycloakClient.User {
         // Although this connector doesn't handle this situation, IDM can retry the update to resolve this inconsistency.
 
         updatePassword(realmName, current.getId(), credential, true);
+
+        if(!current.getRequiredActions().isEmpty()){
+            callRequiredActions(realmName, current.getId(), current.getRequiredActions());
+        }
 
         for (String groupId : addGroupIds) {
             try {
@@ -511,6 +533,9 @@ public class KeycloakAdminRESTUser implements KeycloakClient.User {
         }
         if (shouldReturn(attributesToGet, ATTR_LAST_NAME)) {
             builder.addAttribute(ATTR_LAST_NAME, user.getLastName());
+        }
+        if (shouldReturn(attributesToGet, ATTR_FORCED_REQUIRED_ACTIONS)) {
+            builder.addAttribute(ATTR_FORCED_REQUIRED_ACTIONS, user.getRequiredActions());
         }
 
         Map<String, List<String>> attributes = user.getAttributes();
