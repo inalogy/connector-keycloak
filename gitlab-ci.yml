@@ -1,0 +1,34 @@
+stages:
+  - build
+  - upload
+
+variables:
+  MAVEN_CLI_OPTS: "-B -ntp"
+  ARTIFACT_NAME: "inalogy-keycloak-${CI_COMMIT_REF_NAME}.jar"
+
+build:
+  stage: build
+  tags:
+    - static
+  script:
+    - mvn clean install $MAVEN_CLI_OPTS
+    - mv ./target/connector-keycloak-*.jar ./target/$ARTIFACT_NAME
+  artifacts:
+    paths:
+      - target/$ARTIFACT_NAME
+    expire_in: 1 week
+  rules:
+    - if: '$CI_COMMIT_TAG'  # Run this job only for tags
+
+upload:
+  stage: upload
+  tags:
+    - static  
+  script:
+    - |
+      curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file target/$ARTIFACT_NAME "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/connector-keycloak-$CI_COMMIT_TAG/connector-keycloak-$CI_COMMIT_TAG/$ARTIFACT_NAME"
+  dependencies:
+    - build
+  rules:
+    - if: '$CI_COMMIT_TAG'  # Run this job only for tags
+
