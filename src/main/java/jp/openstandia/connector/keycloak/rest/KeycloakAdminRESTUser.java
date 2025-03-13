@@ -265,9 +265,11 @@ public class KeycloakAdminRESTUser implements KeycloakClient.User {
                     current.setLastName(toKeycloakValue(schema.userSchema, delta));
 
                 }else if(delta.getName().equals(ATTR_FORCED_REQUIRED_ACTIONS)){
-                    List<String> requiredActions = delta.getValuesToReplace().stream()
-                            .map(object -> Objects.toString(object, null))
-                            .collect(Collectors.toList());
+                    List<String> requiredActions = Optional.ofNullable(delta.getValuesToReplace())
+                            .map(values -> values.stream()
+                                    .map(object -> Objects.toString(object, null))
+                                    .collect(Collectors.toList()))
+                            .orElse(Collections.emptyList());
                     current.setRequiredActions(requiredActions);
                 } else if (delta.getName().equals(ATTR_GROUPS)) {
                     if (delta.getValuesToAdd() != null) {
