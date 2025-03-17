@@ -101,7 +101,7 @@ public class KeycloakAdminRESTUser implements KeycloakClient.User {
 
         updatePassword(realmName, uuid, credential, true);
 
-        if(!newUser.getRequiredActions().isEmpty()){
+        if (newUser.getRequiredActions() != null && !newUser.getRequiredActions().isEmpty()) {
             callRequiredActions(realmName, uuid, newUser.getRequiredActions());
         }
 
@@ -382,7 +382,7 @@ public class KeycloakAdminRESTUser implements KeycloakClient.User {
 
         updatePassword(realmName, current.getId(), credential, true);
 
-        if(!current.getRequiredActions().isEmpty()){
+        if (current.getRequiredActions() != null && !current.getRequiredActions().isEmpty()) {
             callRequiredActions(realmName, current.getId(), current.getRequiredActions());
         }
 
