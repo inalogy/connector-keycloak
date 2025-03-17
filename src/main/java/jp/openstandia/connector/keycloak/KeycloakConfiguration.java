@@ -48,7 +48,7 @@ public class KeycloakConfiguration extends AbstractConfiguration {
     private int httpProxyPort;
     private String httpProxyUser;
     private GuardedString httpProxyPassword;
-
+    private boolean requiredActionsEmail;
     @ConfigurationProperty(
             order = 1,
             displayMessageKey = "Keycloak Server URL",
@@ -329,4 +329,19 @@ public class KeycloakConfiguration extends AbstractConfiguration {
             throw new ConfigurationException("Invalid client credential: need to setup username/password or client secret.");
         }
     }
+
+    @ConfigurationProperty(
+            order = 20,
+            displayMessageKey = "Enforce Required Actions via Email",
+            helpMessageKey = "If enabled, required actions will be enforced via email instead of at login",
+            required = false,
+            confidential = false)
+    public boolean isRequiredActionsEmail() {
+        return this.requiredActionsEmail;
+    }
+
+    public void setRequiredActionsEmail(boolean requiredActionsEmail) {
+        this.requiredActionsEmail = requiredActionsEmail;
+    }
 }
+

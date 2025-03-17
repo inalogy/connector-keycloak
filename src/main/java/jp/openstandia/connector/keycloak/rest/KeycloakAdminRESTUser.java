@@ -124,7 +124,9 @@ public class KeycloakAdminRESTUser implements KeycloakClient.User {
     }
 
     private void callRequiredActions(String realmName, String uuid, List<String> requiredActions) {
-        users(realmName).get(uuid).executeActionsEmail(requiredActions);
+        if (this.configuration.isRequiredActionsEmail()){
+            users(realmName).get(uuid).executeActionsEmail(requiredActions);
+        }
     }
 
     protected UserRepresentation toUserRep(KeycloakSchema schema, Set<Attribute> attributes) {
@@ -265,11 +267,25 @@ public class KeycloakAdminRESTUser implements KeycloakClient.User {
                     current.setLastName(toKeycloakValue(schema.userSchema, delta));
 
                 }else if(delta.getName().equals(ATTR_FORCED_REQUIRED_ACTIONS)){
-                    List<String> requiredActions = Optional.ofNullable(delta.getValuesToReplace())
-                            .map(values -> values.stream()
-                                    .map(object -> Objects.toString(object, null))
-                                    .collect(Collectors.toList()))
-                            .orElse(Collections.emptyList());
+                    List<String> requiredActions = new ArrayList<>(current.getRequiredActions());
+
+                    if (delta.getValuesToRemove() != null) {
+                        List<String> toRemove = delta.getValuesToRemove().stream()
+                                .map(object -> Objects.toString(object, null))
+                                .collect(Collectors.toList());
+                        requiredActions.removeAll(toRemove);
+                    }
+
+                    if (delta.getValuesToAdd() != null) {
+                        List<String> toAdd = delta.getValuesToAdd().stream()
+                                .map(object -> Objects.toString(object, null))
+                                .collect(Collectors.toList());
+                        requiredActions.addAll(toAdd);
+                    }
+
+                    requiredActions = requiredActions.stream()
+                            .distinct()
+                            .collect(Collectors.toList());
                     current.setRequiredActions(requiredActions);
                 } else if (delta.getName().equals(ATTR_GROUPS)) {
                     if (delta.getValuesToAdd() != null) {
