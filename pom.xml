@@ -127,7 +127,7 @@
             <dependency>
                 <groupId>org.keycloak</groupId>
                 <artifactId>keycloak-admin-client</artifactId>
-                <version>25.0.5</version>
+                <version>26.0.4</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -136,7 +136,7 @@
         <dependency>
             <groupId>org.keycloak</groupId>
             <artifactId>keycloak-admin-client</artifactId>
-            <version>25.0.5</version>
+            <version>26.0.4</version>
 <!--            <exclusions>-->
 <!--                <exclusion>-->
 <!--                    <groupId>org.slf4j</groupId>-->
