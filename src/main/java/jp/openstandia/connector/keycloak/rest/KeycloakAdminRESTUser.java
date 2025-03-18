@@ -124,6 +124,7 @@ public class KeycloakAdminRESTUser implements KeycloakClient.User {
     }
 
     private void callRequiredActions(String realmName, String uuid, List<String> requiredActions) {
+        LOGGER.warn("executeActionsEmail: {0} actions: {1} isRequiredActionsEmail: {2} ", uuid, requiredActions, this.configuration.isRequiredActionsEmail());
         if (this.configuration.isRequiredActionsEmail()){
             users(realmName).get(uuid).executeActionsEmail(requiredActions);
         }
