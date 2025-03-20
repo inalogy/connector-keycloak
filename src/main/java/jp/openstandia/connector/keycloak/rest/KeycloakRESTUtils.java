@@ -35,30 +35,37 @@ public class KeycloakRESTUtils {
     }
 
     public static String checkCreateResult(Response result, String apiName) {
+        String responseBody = result.readEntity(String.class);
         if (result.getStatus() == Response.Status.CREATED.getStatusCode()) {
             return getGeneratedId(result);
         }
 
         if (result.getStatus() == Response.Status.CONFLICT.getStatusCode()) {
-            throw new AlreadyExistsException(String.format("Already exists when calling \"%s\". status. %d",
-                    apiName, result.getStatus()));
+            throw new AlreadyExistsException(String.format(
+                    "Already exists when calling \"%s\". Status: %d. Response body: %s",
+                    apiName, result.getStatus(), responseBody));
         }
 
-        throw new ConnectorException(String.format("Keycloak returns unexpected error when calling \"%s\". status: %d",
-                apiName, result.getStatus()));
+        throw new ConnectorException(String.format(
+                "Keycloak returns unexpected error when calling \"%s\". Status: %d. Response body: %s",
+                apiName, result.getStatus(), responseBody));
     }
 
     public static void checkDeleteResult(Response result, String apiName) {
+        String responseBody = result.readEntity(String.class);
+
         if (result.getStatus() == Response.Status.NO_CONTENT.getStatusCode()) {
             return;
         }
 
         if (result.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
-            throw new NotFoundException(String.format("Not found error when calling \"%s\". status: %d",
-                    apiName, result.getStatus()));
+            throw new NotFoundException(String.format(
+                    "Not found error when calling \"%s\". Status: %d. Response body: %s",
+                    apiName, result.getStatus(), responseBody));
         }
 
-        throw new ConnectorException(String.format("Keycloak returns unexpected error when calling \"%s\". status: %d",
-                apiName, result.getStatus()));
+        throw new ConnectorException(String.format(
+                "Keycloak returns unexpected error when calling \"%s\". Status: %d. Response body: %s",
+                apiName, result.getStatus(), responseBody));
     }
 }
