@@ -35,6 +35,7 @@ import org.keycloak.representations.idm.*;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.core.Response;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -124,8 +125,25 @@ public class KeycloakAdminRESTUser implements KeycloakClient.User {
     }
 
     private void callRequiredActions(String realmName, String uuid, List<String> requiredActions) {
-        if (this.configuration.isRequiredActionsEmail()){
-            users(realmName).get(uuid).executeActionsEmail(requiredActions);
+        if (this.configuration.isRequiredActionsEmail()) {
+
+            try {
+                users(realmName).get(uuid).executeActionsEmail(requiredActions);
+            } catch (BadRequestException e) {
+                String responseBody = null;
+                Response response = e.getResponse();
+                if (response != null) {
+                    try {
+                        responseBody = response.readEntity(String.class);
+                    } catch (Exception readEx) {
+                        responseBody = "Unable to read error response body: " + readEx.getMessage();
+                    }
+                }
+
+                InvalidAttributeValueException ex = new InvalidAttributeValueException("Keycloak CallRequiredActions: " + responseBody, e);
+                ex.setAffectedAttributeNames(Collections.singletonList(ATTR_FORCED_REQUIRED_ACTIONS));
+                throw ex;
+            }
         }
     }
 
@@ -172,11 +190,11 @@ public class KeycloakAdminRESTUser implements KeycloakClient.User {
                 List<String> groups = attr.getValue().stream().map(a -> a.toString()).collect(Collectors.toList());
                 newUser.setGroups(groups);
 
-            } else if(attr.getName().equals(ATTR_FORCED_REQUIRED_ACTIONS)){
+            } else if (attr.getName().equals(ATTR_FORCED_REQUIRED_ACTIONS)) {
                 List<String> requiredActions = attr.getValue().stream()
                         .map(object -> Objects.toString(object, null))
                         .collect(Collectors.toList());
-              newUser.setRequiredActions(requiredActions);
+                newUser.setRequiredActions(requiredActions);
             } else {
                 if (!schema.isUserSchema(attr)) {
                     throw new InvalidAttributeValueException(String.format("Keycloak doesn't support to set '%s' attribute of User",
@@ -208,7 +226,17 @@ public class KeycloakAdminRESTUser implements KeycloakClient.User {
             users(realmName).get(userId).resetPassword(credential);
 
         } catch (BadRequestException e) {
-            InvalidAttributeValueException ex = new InvalidAttributeValueException("Password policy error in keycloak", e);
+            String responseBody = null;
+            Response response = e.getResponse();
+            if (response != null) {
+                try {
+                    responseBody = response.readEntity(String.class);
+                } catch (Exception readEx) {
+                    responseBody = "Unable to read error response body: " + readEx.getMessage();
+                }
+            }
+
+            InvalidAttributeValueException ex = new InvalidAttributeValueException("Password policy error in Keycloak: " + responseBody, e);
             ex.setAffectedAttributeNames(Arrays.asList(OperationalAttributes.PASSWORD_NAME));
             throw ex;
         }
@@ -266,7 +294,7 @@ public class KeycloakAdminRESTUser implements KeycloakClient.User {
                 } else if (delta.getName().equals(ATTR_LAST_NAME)) {
                     current.setLastName(toKeycloakValue(schema.userSchema, delta));
 
-                }else if(delta.getName().equals(ATTR_FORCED_REQUIRED_ACTIONS)){
+                } else if (delta.getName().equals(ATTR_FORCED_REQUIRED_ACTIONS)) {
                     List<String> requiredActions = new ArrayList<>(current.getRequiredActions());
 
                     if (delta.getValuesToRemove() != null) {
@@ -612,7 +640,7 @@ public class KeycloakAdminRESTUser implements KeycloakClient.User {
 
                     Map<String, ClientMappingsRepresentation> roles = users(realmName).get(user.getId()).roles().getAll().getClientMappings();
 
-                    if(roles != null) {
+                    if (roles != null) {
                         List<String> roleMappings = new ArrayList<>();
 
                         roles.forEach((client, roleRep) -> {
