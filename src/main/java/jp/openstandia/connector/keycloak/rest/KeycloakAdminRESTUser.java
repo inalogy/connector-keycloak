@@ -252,6 +252,7 @@ public class KeycloakAdminRESTUser implements KeycloakClient.User {
         Map<String, List<RoleRepresentation>> clientRolesToAdd = new HashMap<>();
         Map<String, List<RoleRepresentation>> clientRolesToRemove = new HashMap<>();
         CredentialRepresentation credential = null;
+        boolean requiredActionsModified = false;
 
         try {
             UserResource user = usersResource.get(uid.getUidValue());
@@ -295,6 +296,7 @@ public class KeycloakAdminRESTUser implements KeycloakClient.User {
                     current.setLastName(toKeycloakValue(schema.userSchema, delta));
 
                 } else if (delta.getName().equals(ATTR_FORCED_REQUIRED_ACTIONS)) {
+                    requiredActionsModified = true;
                     List<String> requiredActions = new ArrayList<>(current.getRequiredActions());
 
                     if (delta.getValuesToRemove() != null) {
@@ -410,7 +412,7 @@ public class KeycloakAdminRESTUser implements KeycloakClient.User {
 
         updatePassword(realmName, current.getId(), credential, true);
 
-        if (current.getRequiredActions() != null && !current.getRequiredActions().isEmpty()) {
+        if (current.getRequiredActions() != null && requiredActionsModified) {
             callRequiredActions(realmName, current.getId(), current.getRequiredActions());
         }
 
