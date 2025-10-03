@@ -22,14 +22,15 @@ import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
-import org.jboss.resteasy.spi.ResteasyProviderFactory;
+import org.jboss.resteasy.client.jaxrs.internal.ResteasyClientBuilderImpl;
+import org.jboss.resteasy.core.providerfactory.ResteasyProviderFactoryImpl;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.representations.info.ServerInfoRepresentation;
 
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.ext.RuntimeDelegate;
+import jakarta.ws.rs.ProcessingException;
+import jakarta.ws.rs.ext.RuntimeDelegate;
 
 import static jp.openstandia.connector.keycloak.KeycloakUtils.getRootCause;
 
@@ -56,12 +57,12 @@ public class KeycloakAdminRESTAdminClient implements KeycloakClient {
 
         try {
             RuntimeDelegate.getInstance();
-        } catch (RuntimeException e) {
+        } catch (Throwable t) {
             // Set the implementation directly as a workaround
-            RuntimeDelegate.setInstance(new ResteasyProviderFactory());
+            RuntimeDelegate.setInstance(new ResteasyProviderFactoryImpl());
         }
 
-        ResteasyClientBuilder resteasyClientBuilder = new ResteasyClientBuilder();
+        ResteasyClientBuilder resteasyClientBuilder = new ResteasyClientBuilderImpl();
         resteasyClientBuilder.connectionPoolSize(20);
 
         // HTTP proxy configuration
