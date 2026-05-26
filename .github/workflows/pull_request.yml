@@ -35,7 +35,7 @@ jobs:
           gpg-passphrase: OSSRH_GPG_SECRET_KEY_PASSWORD
 
       - name: Deploy SNAPSHOT version
-        run: mvn -B -DskipTests deploy
+        run: mvn -B -DskipTests deploy -Prelease
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
