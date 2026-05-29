@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        keycloak-version: ['24.0.5', '26.0.8', '26.6.1']
+        keycloak-version: ['15.0.2', '24.0.5', '26.0.8', '26.6.1']
     steps:
       - name: Checkout sources
         uses: actions/checkout@v4
