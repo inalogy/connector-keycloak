@@ -46,6 +46,7 @@ public abstract class AbstractIntegrationTest {
     private static final String ADMIN_PASSWORD = "admin";
     private static final String TEST_REALM = "test-realm";
     private static final String KEYCLOAK_VERSION = System.getProperty("keycloak.test.version", "26.0.8");
+    protected static final int KEYCLOAK_MAJOR_VERSION = Integer.parseInt(KEYCLOAK_VERSION.split("\\.")[0]);
     private static final int KEYCLOAK_PORT = 8080;
     private static final Set<String> DEFAULT_CLIENTS = new HashSet<>(Arrays.asList(
             "account", "account-console", "admin-cli", "broker", "realm-management", "security-admin-console"));
@@ -63,23 +64,38 @@ public abstract class AbstractIntegrationTest {
         if (keycloak != null && keycloak.isRunning()) {
             return;
         }
-        keycloak = new GenericContainer<>("quay.io/keycloak/keycloak:" + KEYCLOAK_VERSION)
-                .withExposedPorts(KEYCLOAK_PORT)
-                // KC_BOOTSTRAP_ADMIN_* is for Keycloak 26+, KEYCLOAK_ADMIN* is for 24.x
-                // Setting both is safe — the unused ones are simply ignored.
-                .withEnv("KC_BOOTSTRAP_ADMIN_USERNAME", ADMIN_USER)
-                .withEnv("KC_BOOTSTRAP_ADMIN_PASSWORD", ADMIN_PASSWORD)
-                .withEnv("KEYCLOAK_ADMIN", ADMIN_USER)
-                .withEnv("KEYCLOAK_ADMIN_PASSWORD", ADMIN_PASSWORD)
-                .withCommand("start-dev")
-                .waitingFor(Wait.forHttp("/realms/master")
-                        .forPort(KEYCLOAK_PORT)
-                        .forStatusCode(200)
-                        .withStartupTimeout(java.time.Duration.ofMinutes(3)));
+
+        boolean legacy = KEYCLOAK_MAJOR_VERSION <= 16;
+        String image = "quay.io/keycloak/keycloak:" + KEYCLOAK_VERSION;
+        String healthPath = legacy ? "/auth/realms/master" : "/realms/master";
+
+        GenericContainer<?> container = new GenericContainer<>(image)
+                .withExposedPorts(KEYCLOAK_PORT);
+
+        if (legacy) {
+            container.withEnv("KEYCLOAK_USER", ADMIN_USER)
+                    .withEnv("KEYCLOAK_PASSWORD", ADMIN_PASSWORD);
+        } else {
+            // KC_BOOTSTRAP_ADMIN_* is for Keycloak 26+, KEYCLOAK_ADMIN* is for 24.x
+            // Setting both is safe — the unused ones are simply ignored.
+            container.withEnv("KC_BOOTSTRAP_ADMIN_USERNAME", ADMIN_USER)
+                    .withEnv("KC_BOOTSTRAP_ADMIN_PASSWORD", ADMIN_PASSWORD)
+                    .withEnv("KEYCLOAK_ADMIN", ADMIN_USER)
+                    .withEnv("KEYCLOAK_ADMIN_PASSWORD", ADMIN_PASSWORD)
+                    .withCommand("start-dev");
+        }
+
+        container.waitingFor(Wait.forHttp(healthPath)
+                .forPort(KEYCLOAK_PORT)
+                .forStatusCode(200)
+                .withStartupTimeout(java.time.Duration.ofMinutes(3)));
+
+        keycloak = container;
         keycloak.start();
 
-        keycloakBaseUrl = String.format("http://%s:%d",
-                keycloak.getHost(), keycloak.getMappedPort(KEYCLOAK_PORT));
+        String authPath = legacy ? "/auth" : "";
+        keycloakBaseUrl = String.format("http://%s:%d%s",
+                keycloak.getHost(), keycloak.getMappedPort(KEYCLOAK_PORT), authPath);
 
         createTestRealm();
     }
@@ -103,9 +119,11 @@ public abstract class AbstractIntegrationTest {
             // Enable unmanaged attributes so that custom user attributes are returned via API.
             // Since Keycloak 24, User Profile is enabled by default and new realms have
             // unmanagedAttributePolicy=null (strict mode), which filters out undefined attributes.
-            UPConfig upConfig = admin.realm(TEST_REALM).users().userProfile().getConfiguration();
-            upConfig.setUnmanagedAttributePolicy(UPConfig.UnmanagedAttributePolicy.ENABLED);
-            admin.realm(TEST_REALM).users().userProfile().update(upConfig);
+            if (KEYCLOAK_MAJOR_VERSION >= 24) {
+                UPConfig upConfig = admin.realm(TEST_REALM).users().userProfile().getConfiguration();
+                upConfig.setUnmanagedAttributePolicy(UPConfig.UnmanagedAttributePolicy.ENABLED);
+                admin.realm(TEST_REALM).users().userProfile().update(upConfig);
+            }
         }
     }
 

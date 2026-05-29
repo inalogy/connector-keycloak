@@ -21,6 +21,7 @@ Integration tests are run against the following Keycloak versions in CI:
 
 | Keycloak |
 |----------|
+| 15.0.2   |
 | 24.0.5   |
 | 26.0.8   |
 | 26.6.1   |

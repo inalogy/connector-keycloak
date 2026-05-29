@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 class ClientIT extends AbstractIntegrationTest {
 
@@ -131,6 +132,10 @@ class ClientIT extends AbstractIntegrationTest {
 
     @Test
     void getClientSecretAsGuardedString() {
+        // The admin REST API only includes the client secret in ClientRepresentation
+        // since Keycloak 24.0.0 (ModelToRepresentation.toRepresentation never set it before).
+        assumeTrue(KEYCLOAK_MAJOR_VERSION >= 24, "Client secret is returned by the admin API only since Keycloak 24");
+
         // Create a confidential client (non-public) so it has a secret
         Set<Attribute> attrs = new HashSet<>();
         attrs.add(new Name("confidential-client"));
